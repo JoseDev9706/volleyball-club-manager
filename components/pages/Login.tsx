@@ -75,10 +75,10 @@ const Login: React.FC = () => {
               required
             />
           </div>
-           <div className="text-xs text-text-secondary space-y-1">
+           {/* <div className="text-xs text-text-secondary space-y-1">
              <p>Admin: <strong>admin</strong> / <strong>password</strong></p>
              <p>Super Admin: <strong>superadmin</strong> / <strong>superpassword</strong></p>
-           </div>
+           </div> */}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
           </Button>
