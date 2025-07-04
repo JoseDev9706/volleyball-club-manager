@@ -44,7 +44,7 @@ const Login: React.FC = () => {
         <div className="text-center mb-8">
             {clubLoading ? <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 animate-pulse"></div> : (
               clubSettings.logoUrl ? (
-                <img src={clubSettings.logoUrl} alt="Logo" className="w-16 h-16 object-contain mx-auto mb-4"/>
+                <img src={clubSettings.logoUrl} alt="Logo" className="w-16 h-16 object-contain rounded-full mx-auto mb-4"/>
               ) : (
                 <i data-lucide="volleyball" className="w-16 h-16 text-primary mx-auto mb-4"></i>
               )
