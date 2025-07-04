@@ -13,6 +13,7 @@ const handleResponse = async (response: Response) => {
 
 export const api = {
   login: async (user: string, pass: string): Promise<{ success: boolean; userType: 'admin' | 'superAdmin' | null }> => {
+    console.log('API_BASE_URL', API_BASE_URL);
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
