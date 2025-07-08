@@ -30,6 +30,15 @@ export const api = {
     return fetch(`${API_BASE_URL}/players/${id}`).then(handleResponse);
   },
 
+   getPlayerByDocument: (document: string): Promise<Player | undefined> => {
+    return fetch(`${API_BASE_URL}/players/document/${document}`).then(handleResponse);
+  },
+
+   getPlayerAttendances: (playerId: string): Promise<Attendance[]> => {
+    return fetch(`${API_BASE_URL}/players/${playerId}/attendances`).then(handleResponse);
+  },
+
+
   getTeams: (): Promise<Team[]> => {
     return fetch(`${API_BASE_URL}/teams`).then(handleResponse);
   },

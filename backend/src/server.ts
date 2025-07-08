@@ -19,29 +19,29 @@ app.use(express.json({ limit: '10mb' })); // Increase limit for base64 images
 // To handle discrepancies between frontend display values and Prisma enum keys.
 
 const subCategoryToPrisma: { [key: string]: 'Basico' | 'Intermedio' | 'Avanzado' } = {
-  'Básico': 'Basico',
-  'Intermedio': 'Intermedio',
-  'Avanzado': 'Avanzado',
+    'Básico': 'Basico',
+    'Intermedio': 'Intermedio',
+    'Avanzado': 'Avanzado',
 };
 const subCategoryFromPrisma: { [key: string]: string } = {
-  'Basico': 'Básico',
-  'Intermedio': 'Intermedio',
-  'Avanzado': 'Avanzado',
+    'Basico': 'Básico',
+    'Intermedio': 'Intermedio',
+    'Avanzado': 'Avanzado',
 };
 
 const positionToPrisma: { [key: string]: 'Setter' | 'Libero' | 'MiddleBlocker' | 'OutsideHitter' | 'OppositeHitter' } = {
-  'Colocador': 'Setter',
-  'Líbero': 'Libero',
-  'Central': 'MiddleBlocker',
-  'Punta Receptor': 'OutsideHitter',
-  'Opuesto': 'OppositeHitter',
+    'Colocador': 'Setter',
+    'Líbero': 'Libero',
+    'Central': 'MiddleBlocker',
+    'Punta Receptor': 'OutsideHitter',
+    'Opuesto': 'OppositeHitter',
 };
 const positionFromPrisma: { [key: string]: string } = {
-  'Setter': 'Colocador',
-  'Libero': 'Líbero',
-  'MiddleBlocker': 'Central',
-  'OutsideHitter': 'Punta Receptor',
-  'OppositeHitter': 'Opuesto',
+    'Setter': 'Colocador',
+    'Libero': 'Líbero',
+    'MiddleBlocker': 'Central',
+    'OutsideHitter': 'Punta Receptor',
+    'OppositeHitter': 'Opuesto',
 };
 // MainCategory enum values match Prisma keys, so no mapping is needed.
 
@@ -74,7 +74,7 @@ const mapTeamForFrontend = (team: any) => {
 
 // Root endpoint
 app.get('/api', (req: Request, res: Response) => {
-  res.send('Volleyball Club Manager API is running!');
+    res.send('Volleyball Club Manager API is running!');
 });
 
 // AUTH
@@ -98,7 +98,7 @@ app.get('/api/players', async (req: Request, res: Response, next: NextFunction) 
             orderBy: { joinDate: 'desc' },
         });
         res.json(players.map(mapPlayerForFrontend));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -114,7 +114,7 @@ app.get('/api/players/:id', async (req: Request, res: Response, next: NextFuncti
         } else {
             res.status(404).json({ error: 'Player not found' });
         }
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -122,12 +122,12 @@ app.get('/api/players/:id', async (req: Request, res: Response, next: NextFuncti
 app.post('/api/players', async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { statsHistory, ...playerData } = req.body as PlayerCreationData;
-        
+
         const mappedSubCategory = subCategoryToPrisma[playerData.subCategory];
         const mappedPosition = positionToPrisma[playerData.position];
 
         if (!mappedSubCategory || !mappedPosition) {
-             return res.status(400).json({ message: 'Invalid subCategory or position value provided.' });
+            return res.status(400).json({ message: 'Invalid subCategory or position value provided.' });
         }
 
         const newPlayer = await prisma.player.create({
@@ -144,7 +144,7 @@ app.post('/api/players', async (req: Request, res: Response, next: NextFunction)
             include: { statsHistory: { orderBy: { date: 'desc' } } }
         });
         res.status(201).json(mapPlayerForFrontend(newPlayer));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -153,14 +153,14 @@ app.put('/api/players/:id', async (req: Request, res: Response, next: NextFuncti
     try {
         const { id } = req.params;
         const { statsHistory, joinDate, ...playerData } = req.body as Player;
-        
+
         const mappedSubCategory = subCategoryToPrisma[playerData.subCategory];
         const mappedPosition = positionToPrisma[playerData.position];
 
         if (!mappedSubCategory || !mappedPosition) {
-             return res.status(400).json({ message: 'Invalid subCategory or position value provided.' });
+            return res.status(400).json({ message: 'Invalid subCategory or position value provided.' });
         }
-        
+
         const dataToUpdate: any = {
             ...playerData,
             id: undefined, // Do not try to update id
@@ -182,14 +182,14 @@ app.put('/api/players/:id', async (req: Request, res: Response, next: NextFuncti
                 };
             }
         }
-        
+
         const updatedPlayer = await prisma.player.update({
             where: { id },
             data: dataToUpdate,
             include: { statsHistory: { orderBy: { date: 'desc' } } }
         });
         res.json(mapPlayerForFrontend(updatedPlayer));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -198,7 +198,23 @@ app.delete('/api/players/:id', async (req: Request, res: Response, next: NextFun
     try {
         await prisma.player.delete({ where: { id: req.params.id } });
         res.json({ success: true });
-    } catch(error) {
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.get('/api/players/document/:document', async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    try {
+        const player = await prisma.player.findUnique({
+            where: { document: req.params.document },
+            include: { statsHistory: { orderBy: { date: 'desc' } } },
+        });
+        if (player) {
+            res.json(mapPlayerForFrontend(player));
+        } else {
+            res.status(404).json({ message: 'Jugador no encontrado' });
+        }
+    } catch (error) {
         next(error);
     }
 });
@@ -211,7 +227,7 @@ app.post('/api/players/:id/payment', async (req: Request, res: Response, next: N
             include: { statsHistory: { orderBy: { date: 'desc' } } }
         });
         res.json(mapPlayerForFrontend(updatedPlayer));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -228,7 +244,7 @@ app.get('/api/teams', async (req: Request, res: Response, next: NextFunction) =>
             }
         });
         res.json(teams.map(mapTeamForFrontend));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -254,7 +270,7 @@ app.post('/api/teams', async (req: Request, res: Response, next: NextFunction) =
             include: { players: { select: { id: true } } }
         });
         res.status(201).json(mapTeamForFrontend(newTeam));
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -263,7 +279,7 @@ app.put('/api/teams/:id', async (req: Request, res: Response, next: NextFunction
     try {
         const { id } = req.params;
         const { playerIds, mainCategory, subCategory, ...teamData } = req.body as Team;
-        
+
         // Team category is not meant to be updated, only members and tournament info
         const updatedTeam = await prisma.team.update({
             where: { id },
@@ -278,7 +294,31 @@ app.put('/api/teams/:id', async (req: Request, res: Response, next: NextFunction
             include: { players: { select: { id: true } } }
         });
         res.json(mapTeamForFrontend(updatedTeam));
-    } catch(error) {
+    } catch (error) {
+        next(error);
+    }
+});
+
+// TEAMS BY PLAYER
+app.get('/api/players/:id/teams', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const teams = await prisma.team.findMany({
+            where: {
+                players: {
+                    some: {
+                        id: id
+                    }
+                }
+            },
+            include: {
+                players: {
+                    select: { id: true }
+                }
+            }
+        });
+        res.json(teams.map(mapTeamForFrontend));
+    } catch (error) {
         next(error);
     }
 });
@@ -293,7 +333,7 @@ app.get('/api/attendances', async (req: Request, res: Response, next: NextFuncti
             date: a.date.toISOString().split('T')[0]
         }));
         res.json(formattedAttendances);
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -318,8 +358,25 @@ app.post('/api/attendances', async (req: Request, res: Response, next: NextFunct
                 date: today,
             }
         });
-        res.status(201).json({...newRecord, date: newRecord.date.toISOString().split('T')[0]});
-    } catch(error) {
+        res.status(201).json({ ...newRecord, date: newRecord.date.toISOString().split('T')[0] });
+    } catch (error) {
+        next(error);
+    }
+});
+// Get attendances for a specific player
+app.get('/api/players/:id/attendances', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { id } = req.params;
+        const attendances = await prisma.attendance.findMany({
+            where: { playerId: id },
+            orderBy: { date: 'desc' }
+        });
+        const formattedAttendances = attendances.map(a => ({
+            ...a,
+            date: a.date.toISOString().split('T')[0]
+        }));
+        res.json(formattedAttendances);
+    } catch (error) {
         next(error);
     }
 });
@@ -361,7 +418,7 @@ app.get('/api/club-settings', async (req: Request, res: Response, next: NextFunc
             }
         };
         res.json(frontendSettings);
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
@@ -385,30 +442,11 @@ app.put('/api/club-settings', async (req: Request, res: Response, next: NextFunc
             data: dbSettings,
         });
         res.json(req.body); // Return in frontend format
-    } catch(error) {
+    } catch (error) {
         next(error);
     }
 });
 
-// Error handling middleware
-// app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-//     if (err instanceof Prisma.PrismaClientValidationError) {
-//         console.error("Prisma Validation Error:", err.message);
-//         return res.status(400).json({ message: 'Datos inválidos. Por favor, revisa los campos.', details: err.message });
-//     }
-//     if (err instanceof Prisma.PrismaClientKnownRequestError) {
-//         if (err.code === 'P2002') {
-//             const fields = (err.meta?.target as string[])?.join(', ');
-//             console.error(`Unique constraint failed on fields: ${fields}`);
-//             return res.status(409).json({ message: `Ya existe un registro con este valor para: ${fields}.` });
-//         }
-//         console.error("Prisma Known Request Error:", err);
-//         return res.status(500).json({ message: 'Error en la base de datos.', code: err.code });
-//     }
-
-//     console.error('Unhandled Error:', err);
-//     res.status(500).json({ message: 'Ocurrió un error inesperado en el servidor.' });
-// });
 
 app.listen(PORT, () => {
     console.log(`Backend server is running on http://localhost:${PORT}`);
