@@ -3,10 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { useClub } from '../../context/ClubContext';
-import { Player, MainCategory, SubCategory, Position, PlayerStats } from '../../types';
+import { Player, MainCategory, SubCategory, Position, PlayerStats, Attendance } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
 import { LineChart, Line, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { api } from '../../services/api';
 
 const getLatestStats = (player: Player): PlayerStats => {
     if (!player.statsHistory || player.statsHistory.length === 0) {
@@ -159,6 +160,8 @@ const PlayerProfile: React.FC = () => {
     const { clubSettings } = useClub();
     const [isEditing, setIsEditing] = useState(false);
     const [dateRange, setDateRange] = useState<'quarterly' | 'semiannually' | 'yearly'>('quarterly');
+    const [attendances, setAttendances] = useState<Attendance[]>([]);
+    const [attendanceLoading, setAttendanceLoading] = useState(true);
 
     const player = useMemo(() => players.find(p => p.id === id), [id, players]);
 
@@ -174,6 +177,23 @@ const PlayerProfile: React.FC = () => {
             (window as any).lucide.createIcons();
         }
     }, [loading, isEditing, player, isPaidUpToDate]);
+
+    useEffect(() => {
+        if (id) {
+            setAttendanceLoading(true);
+            api.getPlayerAttendances(id)
+                .then(data => {
+                    setAttendances(data);
+                })
+                .catch(err => {
+                    console.error("Failed to fetch player attendances", err);
+                    showToast("No se pudo cargar el historial de asistencias.", "error");
+                })
+                .finally(() => {
+                    setAttendanceLoading(false);
+                });
+        }
+    }, [id, showToast]);
     
     if (loading) return <p>Cargando perfil...</p>;
     if (!player) return <p>Jugador no encontrado. <Button onClick={() => navigate('/dashboard')}>Volver</Button></p>;
@@ -378,6 +398,25 @@ const PlayerProfile: React.FC = () => {
                             </ResponsiveContainer>
                         </Card>
                      )}
+                     <Card>
+                        <h3 className="text-xl font-bold text-primary mb-4">Historial de Asistencia</h3>
+                        {attendanceLoading ? (
+                            <div className="flex items-center justify-center h-[250px] text-text-secondary">Cargando asistencias...</div>
+                        ) : attendances.length > 0 ? (
+                            <div className="max-h-[250px] overflow-y-auto space-y-2 pr-2">
+                                {attendances.map((att) => (
+                                    <div key={att.date} className={`flex justify-between items-center p-2 rounded-md ${att.status === 'Presente' ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                                        <span className="text-sm text-text-secondary">{new Date(att.date + 'T00:00:00').toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                                        <span className={`text-sm font-bold ${att.status === 'Presente' ? 'text-green-400' : 'text-red-400'}`}>{att.status}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-center h-[250px] text-text-secondary">
+                                No hay registros de asistencia para este jugador.
+                            </div>
+                        )}
+                    </Card>
                 </div>
             </div>
         </div>
