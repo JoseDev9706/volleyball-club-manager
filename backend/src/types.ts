@@ -51,6 +51,16 @@ export type PlayerCreationData = Omit<Player, 'id' | 'joinDate' | 'statsHistory'
   statsHistory: Omit<StatsRecord, 'id'>[];
 };
 
+export interface Coach {
+  id: string;
+  firstName: string;
+  lastName: string;
+  document: string;
+  avatarUrl: string;
+}
+
+export type CoachCreationData = Omit<Coach, 'id'>;
+
 export interface Team {
   id: string;
   name: string;
@@ -59,6 +69,11 @@ export interface Team {
   playerIds: string[];
   tournament?: string;
   tournamentPosition?: string;
+  coachId?: string;
+  coach?: {
+    firstName: string;
+    lastName: string;
+  };
 }
 
 export interface Attendance {

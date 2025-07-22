@@ -12,6 +12,9 @@ import RegisterPlayer from './components/pages/RegisterPlayer';
 import SuperAdmin from './components/pages/SuperAdmin';
 import SuperAdminRoute from './components/shared/SuperAdminRoute';
 import { useClub } from './context/ClubContext';
+import AdminRoute from './components/shared/adminRoute';
+import Coaches from './components/pages/coaches';
+
 
 function hexToRgb(hex: string): string | null {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -71,6 +74,11 @@ const App: React.FC = () => {
           <Route path="teams" element={<Teams />} />
           <Route path="player/:id" element={<PlayerProfile />} />
           <Route path="register" element={<RegisterPlayer />} />
+          <Route path="coaches" element={
+            <AdminRoute>
+              <Coaches />
+            </AdminRoute>
+          } />
           <Route path="superadmin" element={
             <SuperAdminRoute>
               <SuperAdmin />
