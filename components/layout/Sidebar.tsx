@@ -33,8 +33,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, closeSidebar }) => {
       if (link.href === '/teams' && !clubSettings.teamCreationEnabled) {
         return false;
       }
+
+     
       
-      const userRole = userType === 'coach' ? 'admin' : userType;
+      const userRole = userType === 'coach' ? 'coach' : userType;
       
       if (!link.roles) return true;
       return userRole ? link.roles.includes(userRole) : false;
@@ -45,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, closeSidebar }) => {
     return (
       <div className="flex items-center gap-3 mb-8 px-2">
         {clubSettings.logoUrl ? (
-          <img src={clubSettings.logoUrl} alt={`${clubSettings.name} Logo`} className="w-10 h-10 object-contain"/>
+          <img src={clubSettings.logoUrl} alt={`${clubSettings.name} Logo`} className="w-10 h-10 object-contain rounded-full"/>
         ) : (
           <i data-lucide="volleyball" className="w-10 h-10 text-primary"></i>
         )}
