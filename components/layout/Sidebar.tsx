@@ -5,6 +5,7 @@ import { NAV_LINKS } from '../../constants';
 import { useAuth } from '../../context/AuthContext';
 import { useClub } from '../../context/ClubContext';
 
+
 interface SidebarProps {
   isSidebarOpen: boolean;
   closeSidebar: () => void;
@@ -12,7 +13,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, closeSidebar }) => {
   const location = useLocation();
-  const { logout, userType } = useAuth();
+  const { logout, userType, coachInfo } = useAuth();
   const { clubSettings } = useClub();
 
   useEffect(() => {
@@ -29,16 +30,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, closeSidebar }) => {
 
   const visibleNavLinks = useMemo(() => {
     return NAV_LINKS.filter(link => {
-      // Hide Teams link if feature is disabled
       if (link.href === '/teams' && !clubSettings.teamCreationEnabled) {
         return false;
       }
       
-      // Handle role-based visibility
-      if (!link.roles) return true; 
-      return userType ? link.roles.includes(userType) : false;
+      const userRole = userType === 'coach' ? 'admin' : userType;
+      
+      if (!link.roles) return true;
+      return userRole ? link.roles.includes(userRole) : false;
     });
   }, [userType, clubSettings.teamCreationEnabled]);
+
+  const SidebarHeader: React.FC = () => {    
+    return (
+      <div className="flex items-center gap-3 mb-8 px-2">
+        {clubSettings.logoUrl ? (
+          <img src={clubSettings.logoUrl} alt={`${clubSettings.name} Logo`} className="w-10 h-10 object-contain"/>
+        ) : (
+          <i data-lucide="volleyball" className="w-10 h-10 text-primary"></i>
+        )}
+        <h1 className="text-xl font-bold text-text-primary whitespace-nowrap">{clubSettings.name}</h1>
+      </div>
+    );
+  };
 
   return (
     <aside 
@@ -53,14 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isSidebarOpen, closeSidebar }) => {
       `}
     >
       <div className={`flex flex-col min-w-[14rem] h-full transition-opacity duration-200 ${isSidebarOpen ? 'opacity-100' : 'opacity-0 lg:opacity-100'}`}>
-        <div className="flex items-center gap-3 mb-8 px-2">
-           {clubSettings.logoUrl ? (
-                <img src={clubSettings.logoUrl} alt={`${clubSettings.name} Logo`} className="w-10 h-10 object-contain rounded-full"/>
-            ) : (
-                <i data-lucide="volleyball" className="w-10 h-10 text-primary"></i>
-            )}
-          <h1 className="text-xl font-bold text-text-primary whitespace-nowrap">{clubSettings.name}</h1>
-        </div>
+        <SidebarHeader />
         <nav className="flex-grow">
           <ul className="space-y-2">
             {visibleNavLinks.map((link) => (

@@ -34,6 +34,13 @@ export const NAV_LINKS: NavLink[] = [
     label: 'Registrar Jugador',
     icon: <i data-lucide="user-plus" className="w-5 h-5"></i>,
   },
+    {
+    href: '/coaches',
+    label: 'Entrenadores',
+    icon: <i data-lucide="contact" className="w-5 h-5"></i>,
+    roles: ['admin', 'superAdmin']
+  },
+  
   {
     href: '/superadmin',
     label: 'Configuración',

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useData } from '../../context/DataContext';
@@ -27,9 +28,13 @@ const Attendance: React.FC = () => {
     return record ? record.status : 'Pending';
   };
 
-  const handleSetAttendance = (playerId: string, playerName: string, status: AttendanceType['status']) => {
-    recordAttendance({playerId, status});
-    showToast(`${playerName} marcado como ${status.toLowerCase()}`, 'success');
+  const handleSetAttendance = async (playerId: string, playerName: string, status: AttendanceType['status']) => {
+    try {
+      await recordAttendance({playerId, status});
+      showToast(`${playerName} marcado como ${status.toLowerCase()}`, 'success');
+    } catch(e) {
+      showToast(`Error al marcar asistencia para ${playerName}`, 'error');
+    }
   }
 
   const FilterControls = () => (

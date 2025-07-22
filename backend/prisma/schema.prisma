@@ -70,6 +70,19 @@ model StatsRecord {
   updatedAt DateTime @updatedAt
 }
 
+model Coach {
+  id        String   @id @default(cuid())
+  firstName String
+  lastName  String
+  document  String   @unique
+  password  String
+  avatarUrl String   @db.Text
+
+  teams     Team[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Team {
   id                 String      @id @default(cuid())
   name               String      @unique
@@ -79,6 +92,9 @@ model Team {
   tournamentPosition String?
 
   players Player[]
+  
+  coach    Coach?  @relation(fields: [coachId], references: [id], onDelete: SetNull)
+  coachId  String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

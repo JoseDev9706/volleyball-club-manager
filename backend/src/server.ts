@@ -3,7 +3,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { prisma } from './lib/prisma';
-import type { Player, Team, Attendance, ClubSettings, PlayerCreationData } from './types';
+import type { Player, Team, Attendance, ClubSettings, PlayerCreationData, CoachCreationData } from './types';
 import { Prisma } from '@prisma/client';
 
 
@@ -79,14 +79,29 @@ app.get('/api', (req: Request, res: Response) => {
 
 // AUTH
 app.post('/api/auth/login', async (req: Request, res: Response) => {
-    const { user, pass } = req.body;
-    if (user === 'admin' && pass === 'password') {
-        return res.json({ success: true, userType: 'admin' });
+     try {
+        const { user, pass } = req.body;
+        if (user === 'admin' && pass === 'password') {
+            return res.json({ success: true, userType: 'admin' });
+        }
+        if (user === 'superadmin' && pass === 'superpassword') {
+            return res.json({ success: true, userType: 'superAdmin' });
+        }
+
+        const coach = await prisma.coach.findUnique({
+            where: { document: user }
+        });
+
+        if (coach && coach.password === pass) {
+            const { password, ...coachInfo } = coach;
+            return res.json({ success: true, userType: 'coach', coachInfo });
+        }
+
+        return res.status(401).json({ success: false, userType: null, message: 'Invalid credentials' });
+    } catch(error) {
+        console.error(error);
+        return res.status(500).json({ success: false, userType: null, message: 'Internal server error' });
     }
-    if (user === 'superadmin' && pass === 'superpassword') {
-        return res.json({ success: true, userType: 'superAdmin' });
-    }
-    return res.status(401).json({ success: false, userType: null });
 });
 
 
@@ -251,7 +266,7 @@ app.get('/api/teams', async (req: Request, res: Response, next: NextFunction) =>
 
 app.post('/api/teams', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { playerIds, ...teamData } = req.body as Omit<Team, 'id'>;
+        const { playerIds, coachId, ...teamData } = req.body as Omit<Team, 'id' | 'coach'>;
 
         const mappedSubCategory = subCategoryToPrisma[teamData.subCategory];
         if (!mappedSubCategory) {
@@ -265,12 +280,16 @@ app.post('/api/teams', async (req: Request, res: Response, next: NextFunction) =
                 subCategory: mappedSubCategory,
                 players: {
                     connect: playerIds.map(id => ({ id }))
-                }
+                },
+                coach: coachId ? { connect: { id: coachId } } : undefined,
             },
-            include: { players: { select: { id: true } } }
+            include: { 
+                players: { select: { id: true } },
+                coach: { select: { firstName: true, lastName: true } }
+            }
         });
         res.status(201).json(mapTeamForFrontend(newTeam));
-    } catch (error) {
+    } catch(error) {
         next(error);
     }
 });
@@ -376,6 +395,34 @@ app.get('/api/players/:id/attendances', async (req: Request, res: Response, next
             date: a.date.toISOString().split('T')[0]
         }));
         res.json(formattedAttendances);
+    } catch (error) {
+        next(error);
+    }
+});
+
+// COACHES
+app.get('/api/coaches', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const coaches = await prisma.coach.findMany({
+            select: { id: true, firstName: true, lastName: true, document: true, avatarUrl: true }
+        });
+        res.json(coaches);
+    } catch (error) {
+        next(error);
+    }
+});
+
+app.post('/api/coaches', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const coachData = req.body as CoachCreationData;
+        const newCoach = await prisma.coach.create({
+            data: {
+                ...coachData,
+                password: coachData.document, // Set password to document by default
+            }
+        });
+        const { password, ...coachInfo } = newCoach;
+        res.status(201).json(coachInfo);
     } catch (error) {
         next(error);
     }

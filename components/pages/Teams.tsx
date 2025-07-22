@@ -4,6 +4,7 @@ import React, { useState, useMemo, FormEvent, useEffect } from 'react';
 import { useData } from '../../context/DataContext';
 import { useToast } from '../../context/ToastContext';
 import { useClub } from '../../context/ClubContext';
+import { useAuth } from '../../context/AuthContext';
 import { MainCategory, SubCategory, Player, Team, PlayerStats } from '../../types';
 import Card from '../ui/Card';
 import Button from '../ui/Button';
@@ -26,6 +27,7 @@ const CreateTeamForm: React.FC<{ onTeamCreated: () => void }> = ({ onTeamCreated
   const { players, teams, createTeam, attendances } = useData();
   const { showToast } = useToast();
   const { clubSettings } = useClub();
+  const { userType, coachInfo } = useAuth();
   const [teamName, setTeamName] = useState('');
   const [tournament, setTournament] = useState('');
   const [mainCategory, setMainCategory] = useState<MainCategory>(MainCategory.Masculino);
@@ -90,13 +92,16 @@ const CreateTeamForm: React.FC<{ onTeamCreated: () => void }> = ({ onTeamCreated
     setError('');
 
     try {
-        await createTeam({
+        const teamPayload: Omit<Team, 'id' | 'coach'> = {
             name: teamName,
             mainCategory,
             subCategory,
             playerIds: selectedPlayerIds,
-            tournament: tournament || undefined
-        });
+            tournament: tournament || undefined,
+            coachId: userType === 'coach' && coachInfo ? coachInfo.id : undefined,
+        };
+
+        await createTeam(teamPayload);
         showToast('¡Equipo creado exitosamente!', 'success');
         setTeamName('');
         setTournament('');
@@ -330,6 +335,7 @@ const Teams: React.FC = () => {
                                                 <h4 className="text-xl font-bold text-primary">{team.name}</h4>
                                                 <p className="text-text-secondary">{team.mainCategory}</p>
                                                 {team.tournament && <p className="text-sm text-amber-400 mt-1 flex items-center gap-1.5"><i data-lucide="trophy" className="w-4 h-4"></i>{team.tournament}</p>}
+                                                {team.coach && <p className="text-sm text-text-secondary mt-1 flex items-center gap-1.5"><i data-lucide="contact" className="w-4 h-4"></i>{`${team.coach.firstName} ${team.coach.lastName}`}</p>}
                                            </div>
                                            <div className="flex flex-col items-end gap-2 flex-shrink-0">
                                               <span className="text-sm bg-primary text-white px-3 py-1 rounded-full">{team.playerIds.length} Jugadores</span>

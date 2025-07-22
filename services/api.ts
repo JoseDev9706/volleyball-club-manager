@@ -1,5 +1,5 @@
 
-import { Player, Team, MainCategory, SubCategory, Position, Attendance, ClubSettings, PlayerCreationData } from '../types';
+import { Player, Team,  Attendance, ClubSettings, PlayerCreationData, Coach, CoachCreationData } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
@@ -11,9 +11,14 @@ const handleResponse = async (response: Response) => {
     return response.json();
 };
 
+export type LoginResponse = { 
+  success: boolean; 
+  userType: 'admin' | 'superAdmin' | 'coach' | null;
+  coachInfo?: Coach;
+};
+
 export const api = {
-  login: async (user: string, pass: string): Promise<{ success: boolean; userType: 'admin' | 'superAdmin' | null }> => {
-    console.log('API_BASE_URL', API_BASE_URL);
+  login: async (user: string, pass: string): Promise<LoginResponse> => {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -115,6 +120,19 @@ export const api = {
   deletePlayer: async (playerId: string): Promise<{ success: boolean }> => {
     const response = await fetch(`${API_BASE_URL}/players/${playerId}`, {
         method: 'DELETE',
+    });
+    return handleResponse(response);
+  },
+
+   getCoaches: (): Promise<Coach[]> => {
+    return fetch(`${API_BASE_URL}/coaches`).then(handleResponse);
+  },
+
+  createCoach: async (coachData: CoachCreationData): Promise<Coach> => {
+    const response = await fetch(`${API_BASE_URL}/coaches`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(coachData),
     });
     return handleResponse(response);
   }

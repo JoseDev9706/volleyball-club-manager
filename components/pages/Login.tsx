@@ -44,7 +44,7 @@ const Login: React.FC = () => {
         <div className="text-center mb-8">
             {clubLoading ? <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 animate-pulse"></div> : (
               clubSettings.logoUrl ? (
-                <img src={clubSettings.logoUrl} alt="Logo" className="w-16 h-16 object-contain rounded-full mx-auto mb-4"/>
+                <img src={clubSettings.logoUrl} alt="Logo" className="w-16 h-16 object-contain mx-auto mb-4"/>
               ) : (
                 <i data-lucide="volleyball" className="w-16 h-16 text-primary mx-auto mb-4"></i>
               )
@@ -75,10 +75,11 @@ const Login: React.FC = () => {
               required
             />
           </div>
-           {/* <div className="text-xs text-text-secondary space-y-1">
+           <div className="text-xs text-text-secondary space-y-1">
              <p>Admin: <strong>admin</strong> / <strong>password</strong></p>
-             <p>Super Admin: <strong>superadmin</strong> / <strong>superpassword</strong></p>
-           </div> */}
+             {/* <p>Super Admin: <strong>superadmin</strong> / <strong>superpassword</strong></p> */}
+             <p>Entrenadores: Usar número de documento para usuario y contraseña.</p>
+           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Iniciando...' : 'Iniciar Sesión'}
           </Button>
